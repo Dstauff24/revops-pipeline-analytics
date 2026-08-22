@@ -1,0 +1,7 @@
+# Generated artifacts. Everything here is rebuilt by `python setup.py`.
+data/csv/
+pipeline.duckdb
+pipeline.duckdb.wal
+__pycache__/
+*.pyc
+.venv/
