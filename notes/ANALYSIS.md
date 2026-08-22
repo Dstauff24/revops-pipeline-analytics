@@ -68,7 +68,7 @@ Directional for a budget shift, not an attribution model.
 
 ## 3. Commit means ninety percent and delivers fifty-eight.
 
-Query 05. Deals sitting in Commit at close converted at 57.9
+Query 05. Deals sitting in Commit at close converted at 56.6
 percent against the roughly 90 percent the category is understood
 to promise. On 33.9 million of Commit pipeline that is a 14.4
 million dollar variance, and won deals landed an average of 41

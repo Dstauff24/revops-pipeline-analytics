@@ -120,13 +120,24 @@ Every file opens with a QUESTION, a DECISION IT INFORMS, and a
 CAVEAT block before any SQL. The caveat is not boilerplate. Each
 one names the specific thing that would make the number wrong.
 
-## Notes on findings
+## Notes
 
 [`notes/ANALYSIS.md`](notes/ANALYSIS.md) is what the data
 actually says: four findings, what each one means, and what I
 would do about it. Including one case where the pattern looked
 like a finding, I checked the two explanations I expected, and
 neither held, so it does not get reported as one.
+
+[`notes/BUILDING_THE_DATA.md`](notes/BUILDING_THE_DATA.md) is the
+log of the four rounds it took to get the generator right, each
+written up as problem, diagnosis, fix, result. A 9.6 percent win
+rate that turned out to be compounding stage gates. A ramp
+penalty that was structurally unable to reach the band I was
+measuring. A referral channel returning 2,055x because I had
+priced consumer leads against enterprise deals. And a query that
+produced a convincing inverted-U which was really a denominator
+artifact. Every one of those builds ran clean and returned a
+plausible looking table, which is the point of writing them down.
 
 ## Stack
 

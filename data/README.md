@@ -75,6 +75,11 @@ These are modeled in, so the queries have something real to find:
   they deserve, and the gap is widest for reps who have been there
   the least time.
 
+None of that landed on the first try. `../notes/BUILDING_THE_DATA.md`
+is the log of the four rounds of diagnosis it took, including the
+parameters that moved each time, so the failures can be reproduced
+by reverting them.
+
 ## Deliberate imperfections
 
 This is the part that makes the dataset worth querying.
