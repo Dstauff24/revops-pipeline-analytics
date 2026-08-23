@@ -1,0 +1,14 @@
+check_id,issue_type,severity,fix_priority,table_affected,records,pct_of_table,dollars_affected,what_it_breaks
+3,Close date precedes create date,Blocks cycle time reporting,1,opportunities,30,1.18,2125674,Produces negative sales cycles that poison any average
+4,Closed deal has no close date,Blocks period reporting,1,opportunities,25,0.98,1372048,Deal is invisible to any report filtered by close month or quarter
+7,is_won flag disagrees with stage,Blocks revenue reporting,1,opportunities,27,1.06,1304784,Win rate differs depending on which column the report was written against
+13,Open deal owned by a departed rep,Blocks pipeline execution,1,opportunities,5,0.2,468313,Live pipeline with no owner: nobody is working these and they still count in coverage
+10,Lead marked converted with no opportunity linked,Blocks source attribution,1,leads,25,0.63,,Marketing source attribution loses these deals entirely
+5,Open deal has a close date,Distorts pipeline reporting,2,opportunities,15,0.59,1904954,Deal counts as open pipeline and as closed revenue depending on the filter
+8,Open deal with no stage movement in 180 days,Distorts pipeline reporting,2,opportunities,19,0.75,1256488,Inflates open pipeline and every coverage ratio built on it
+2,Opportunity amount is zero or negative,Distorts revenue reporting,2,opportunities,12,0.47,-132500,Negative values net against real revenue in every sum
+1,Opportunity has no amount,Distorts revenue reporting,2,opportunities,127,4.99,,Forecast and attainment understate by the value of these deals
+11,Stage history skips a stage,Distorts funnel reporting,2,stage_history,25,0.38,,Funnel conversion undercounts the skipped stage and overstates time in the prior one
+9,Duplicate account records (normalized name match),Distorts account reporting,2,accounts,12,3.92,,"Splits one customer across two records, understating account value and expansion"
+6,Closed Lost with no loss reason,Cleanup and process,3,opportunities,167,6.56,11791890,"Win loss analysis silently drops these, biasing whatever reasons remain"
+12,Opportunity with zero logged activities,Cleanup and process,3,opportunities,76,2.99,4461048,Activity based analysis silently excludes these deals

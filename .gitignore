@@ -5,3 +5,8 @@ pipeline.duckdb.wal
 __pycache__/
 *.pyc
 .venv/
+
+# BI extracts are rebuilt by bi/export_for_bi.py. One small sample
+# is committed so the folder is not empty on a clean clone.
+bi/exports/*.csv
+!bi/exports/04_data_quality_checks.csv

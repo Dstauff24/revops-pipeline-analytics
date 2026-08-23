@@ -28,8 +28,9 @@ in a pipeline review.
 
 ```
 pip install -r requirements.txt
-python setup.py       # generates the data, builds pipeline.duckdb, verifies it
-python run_all.py     # runs all fourteen queries, exits nonzero if any fail
+python setup.py            # generates the data, builds pipeline.duckdb, verifies it
+python run_all.py          # runs all fourteen queries, exits nonzero if any fail
+python bi/export_for_bi.py # writes the BI extracts and a traceability manifest
 ```
 
 No credentials, no cloud account, no server. DuckDB is a single
@@ -120,6 +121,58 @@ Every file opens with a QUESTION, a DECISION IT INFORMS, and a
 CAVEAT block before any SQL. The caveat is not boilerplate. Each
 one names the specific thing that would make the number wrong.
 
+## Dashboards
+
+Four Tableau Public dashboards built on these queries, one per
+audience rather than one dashboard with everything on it.
+
+<!-- PUBLISH: replace this line with the Tableau Public workbook
+     URL, then delete the comment. -->
+**Workbook:** `TABLEAU_PUBLIC_URL_PENDING`
+
+| # | Dashboard | Audience | Question it answers |
+|---|---|---|---|
+| 01 | Pipeline Health | VP of Sales | Is there enough pipeline, and is any of it rotting? |
+| 02 | Rep Performance and Ramp | Sales manager | Who needs help, and are new hires ramping on schedule? |
+| 03 | Channel Efficiency | CMO or growth lead | Where should next quarter's budget go? |
+| 04 | Data Quality Monitor | RevOps | What is broken in the CRM, and what does it cost? |
+
+<!-- PUBLISH: replace each placeholder below with the exported PNG
+     once the workbooks are live:
+     ![Pipeline Health](bi/screenshots/01_pipeline_health.png)
+     ![Rep Performance](bi/screenshots/02_rep_performance.png)
+     ![Channel Efficiency](bi/screenshots/03_channel_efficiency.png)
+     ![Data Quality](bi/screenshots/04_data_quality.png)
+-->
+Screenshots land in [`bi/screenshots/`](bi/screenshots/) and are
+embedded here, so the work is visible without leaving GitHub.
+
+Dashboard 04 is the one worth looking at first. Most BI portfolios
+show revenue charts. This one quantifies what the dirty records in
+a CRM cost and hands somebody the list to go fix, and clicking an
+issue filters the work list to those records.
+
+[`bi/README.md`](bi/README.md) has the reasoning: why Tableau
+Public rather than Power BI, why four dashboards instead of one,
+and eight charts that were considered and deliberately left off.
+[`bi/DASHBOARD_SPECS.md`](bi/DASHBOARD_SPECS.md) is the sheet by
+sheet build spec.
+
+### The export layer
+
+`python bi/export_for_bi.py` runs ten queries and writes one CSV
+per extract into `bi/exports/`, with a
+[`MANIFEST.md`](bi/exports/MANIFEST.md) recording row count,
+column count, source query and SHA256 for each file. Two runs
+against an unchanged database produce byte identical CSVs, and the
+record level hygiene extract is reconciled against the summary
+extract before anything is written, so the drill down and the
+headline number cannot disagree.
+
+Six extracts read `queries/` directly. Four live in `bi/queries/`
+because a dashboard needed a grain the analysis query had already
+collapsed away. Nothing in `queries/` was modified.
+
 ## Notes
 
 [`notes/ANALYSIS.md`](notes/ANALYSIS.md) is what the data
@@ -141,5 +194,6 @@ plausible looking table, which is the point of writing them down.
 
 ## Stack
 
-DuckDB, Python, Faker, NumPy. No cloud services, no credentials,
-no setup.
+DuckDB, Python, Faker, NumPy for the data and the analysis.
+Tableau Public for the dashboards. No cloud services, no
+credentials, no setup.
