@@ -33,6 +33,11 @@ python run_all.py          # runs all fourteen queries, exits nonzero if any fai
 python bi/export_for_bi.py # writes the BI extracts and a traceability manifest
 ```
 
+`./check.sh` runs the whole thing as a release gate: every query,
+the hygiene reconciliation, the ramp assertion, em dashes, and any
+publishing placeholders left in the repo. It has to exit zero
+before this gets renamed or pinned.
+
 No credentials, no cloud account, no server. DuckDB is a single
 file on disk. A clean clone to query results is about thirty
 seconds.

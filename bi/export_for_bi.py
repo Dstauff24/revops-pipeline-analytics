@@ -8,7 +8,7 @@ one CSV per extract into bi/exports/ along with a MANIFEST.md that
 records the row count, column count, source query and SHA256 of
 every file.
 
-Two properties this script is built to hold:
+Three properties this script is built to hold:
 
   Idempotent. Running it twice produces byte identical CSVs. The
   SHA256 in the manifest is what makes that checkable rather than
@@ -19,6 +19,15 @@ Two properties this script is built to hold:
   drill down and the headline number ever disagree, this fails
   loudly rather than shipping two dashboards that contradict each
   other.
+
+  Guarded against a stale ramp signal. notes/ANALYSIS.md and
+  notes/BUILDING_THE_DATA.md both claim the Q3 hire cohort ramps
+  slowest, and dashboard 02 plots that claim. If a regenerated
+  dataset ever stopped supporting it, the chart would quietly
+  contradict the writeup, which for this repository is the worst
+  available failure: the whole of BUILDING_THE_DATA.md is about
+  catching exactly that class of error. So the claim is asserted
+  here rather than eyeballed on the chart.
 
 Nothing in queries/ is read for writing or modified. Extracts that
 need a grain the analysis queries do not produce live in
@@ -105,6 +114,19 @@ SPECS = [
 ]
 
 
+# The ramp claim made in notes/ANALYSIS.md and
+# notes/BUILDING_THE_DATA.md, in a form that can be checked. Q3
+# hires are built to walk the ramp curve at 0.55 speed, so they
+# should create less pipeline per rep month than every other
+# cohort in both of the bands where the penalty is still live.
+# Measured on opportunities created rather than on revenue,
+# because revenue lags the behavior by a full sales cycle. This is
+# the same measure dashboard 02 plots.
+RAMP_SLOW_COHORT = "Q3"
+RAMP_CLAIM_BANDS = ["months 01-03", "months 04-06"]
+RAMP_CLAIM_MEASURE = "opps_created_per_rep_month"
+
+
 def render(value):
     """
     Deterministic CSV formatting. Floats are rounded rather than
@@ -181,6 +203,52 @@ def reconcile(results):
     for check_id in sorted(set(d_counts) - set(s_counts)):
         problems.append(f"check {check_id}: in drill down but not in summary")
     return problems, sum(s_counts.values())
+
+
+def assert_ramp_signal(results):
+    """
+    Assert the Q3 cohort sits below every other cohort on pipeline
+    created per rep month, in each band where the planted penalty
+    is still in effect.
+
+    Returns (problems, readings). Reading the values off the
+    extract that is about to be written, rather than re-querying,
+    means the assertion covers exactly the bytes being shipped.
+    """
+    extract = next(r for r in results if r["out"] == "02_ramp_by_cohort.csv")
+    cols = extract["header"]
+    i_quarter = cols.index("hire_quarter")
+    i_band = cols.index("tenure_band")
+    i_measure = cols.index(RAMP_CLAIM_MEASURE)
+
+    problems = []
+    readings = []
+    for band in RAMP_CLAIM_BANDS:
+        values = {row[i_quarter]: float(row[i_measure])
+                  for row in extract["data"] if row[i_band] == band}
+        readings.append((band, values))
+
+        if not values:
+            problems.append(f"{band}: tenure band is absent from the extract entirely")
+            continue
+        if RAMP_SLOW_COHORT not in values:
+            problems.append(f"{band}: no {RAMP_SLOW_COHORT} cohort row in this band")
+            continue
+        others = {q: v for q, v in values.items() if q != RAMP_SLOW_COHORT}
+        if len(others) < 3:
+            problems.append(f"{band}: expected three comparison cohorts, "
+                            f"found {len(others)} ({', '.join(sorted(others)) or 'none'})")
+            continue
+
+        slow = values[RAMP_SLOW_COHORT]
+        beaten_by = {q: v for q, v in others.items() if v <= slow}
+        if beaten_by:
+            detail = ", ".join(f"{q}={v}" for q, v in sorted(beaten_by.items()))
+            problems.append(
+                f"{band}: {RAMP_SLOW_COHORT}={slow} is not below every other "
+                f"cohort, matched or beaten by {detail}")
+
+    return problems, readings
 
 
 def write_manifest(results, flagged_total):
@@ -261,6 +329,22 @@ def main():
             print(f"    {p}")
         sys.exit(1)
     print(f"  [ok]   all 13 checks agree, {flagged_total:,} flagged records total")
+
+    print("\nAsserting the Q3 ramp claim that dashboard 02 plots")
+    ramp_problems, readings = assert_ramp_signal(results)
+    for band, values in readings:
+        rendered = "  ".join(f"{q}={values[q]}" for q in sorted(values))
+        print(f"    {band}:  {rendered}")
+    if ramp_problems:
+        print("  [FAIL] the extract no longer supports the claim in "
+              "notes/ANALYSIS.md and notes/BUILDING_THE_DATA.md:")
+        for p in ramp_problems:
+            print(f"    {p}")
+        print("  Either the generator changed and the writeups need updating,")
+        print("  or the ramp penalty regressed. Do not publish dashboard 02")
+        print("  until the chart and the documents agree again.")
+        sys.exit(1)
+    print(f"  [ok]   {RAMP_SLOW_COHORT} lowest in both bands")
 
     manifest = write_manifest(results, flagged_total)
     total_rows = sum(r["rows"] for r in results)

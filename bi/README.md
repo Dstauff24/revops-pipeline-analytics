@@ -17,12 +17,41 @@ export script that feeds them.
 
 - Tableau Public profile: `PROFILE_URL_PENDING`
 - Workbook: `WORKBOOK_URL_PENDING`
-- Screenshots: pending, land in `bi/screenshots/`
+- Screenshots: `SCREENSHOTS_PENDING`, land in `bi/screenshots/`
 
 Everything else in this directory is done and runs:
 `python bi/export_for_bi.py` produces the ten extracts and the
 manifest. `bi/DASHBOARD_SPECS.md` is the sheet by sheet build
 spec the workbooks are built from.
+
+### Release sequence
+
+The placeholders above are a dependency loop if you take them out
+of order: the README needs URLs that do not exist until the
+workbooks are published, and the screenshots have to come from the
+published versions rather than from Desktop, because Desktop
+renders fonts and sizing differently and the mismatch is visible.
+
+So, in order:
+
+1. **Publish the workbooks to Tableau Public.** This is what
+   produces the real URLs.
+2. **Fill in the placeholders.** Four values and three comment
+   blocks across `bi/README.md` and the root README. `./check.sh`
+   lists every one of them by file and line.
+3. **Capture screenshots from the published dashboards**, not from
+   Desktop. Save them into `bi/screenshots/` with the filenames the
+   root README already expects.
+4. **Rename the repository and pin it, last.** Renaming last means
+   the Tableau links and the GitHub description go live at the same
+   time, so there is never a window where a reviewer lands on a
+   repo whose description promises dashboards it cannot reach.
+
+**Nothing gets renamed or pinned until `./check.sh` exits zero.**
+It gates on all fourteen queries, the hygiene reconciliation, the
+Q3 ramp assertion, em dashes, and the publishing placeholders.
+Today it fails on exactly one gate, the placeholders, which is the
+gate doing its job.
 
 ---
 
@@ -209,6 +238,21 @@ manifest is written. If the drill down and the headline ever
 disagree the export fails. Two dashboards that contradict each
 other is worse than no dashboard, because whichever one somebody
 happens to open becomes the truth.
+
+**Assert the ramp claim rather than eyeball it.** Both
+[`ANALYSIS.md`](../notes/ANALYSIS.md) and
+[`BUILDING_THE_DATA.md`](../notes/BUILDING_THE_DATA.md) state that
+the Q3 hire cohort ramps slowest, and sheet 2.2 plots it. The
+export asserts that Q3 sits below all three other cohorts on
+pipeline created per rep month, in both bands where the planted
+penalty is still live, and exits nonzero with the actual numbers
+printed if it ever stops holding.
+
+That guard exists because of what this repository is. The failure
+it prevents is a dashboard quietly contradicting a document whose
+entire subject is catching numbers that are confidently wrong.
+Checking it by looking at the chart is exactly the habit
+`BUILDING_THE_DATA.md` argues against, so it is a test instead.
 
 ### Why some extracts are new files
 

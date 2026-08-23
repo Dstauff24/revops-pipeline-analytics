@@ -8,7 +8,7 @@ built on exactly one of these files, and every file traces back
 to a query in this repository.
 
 - Dataset as of: **2025-12-31** (frozen; queries use it as a literal)
-- Export generated: 2026-08-23 03:38:44Z
+- Export generated: 2026-08-23 11:31:27Z
 - Extracts: 10
 - Hygiene records flagged: 565
 

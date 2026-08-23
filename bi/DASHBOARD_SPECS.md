@@ -247,6 +247,8 @@ dashboard other portfolios do not have.
    `03_channel_efficiency.png`, `04_data_quality.png`.
 3. Add the workbook URL to the root README's Dashboards section
    and to the GitHub repository description.
-4. Re-run the em dash check before committing, because Tableau
-   likes to insert them into auto generated titles:
-   `grep -rn $'\u2014' .` should return nothing.
+4. Run `./check.sh` before committing. It gates on em dashes
+   (Tableau likes to insert them into auto generated titles), on
+   leftover publishing placeholders, on all fourteen queries, and
+   on the Q3 ramp assertion. It must exit zero before the repo is
+   renamed or pinned.
