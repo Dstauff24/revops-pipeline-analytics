@@ -251,8 +251,36 @@ def assert_ramp_signal(results):
     return problems, readings
 
 
+def existing_timestamp(path, body_text):
+    """
+    Reuse the previous timestamp when the manifest content has not
+    changed.
+
+    The timestamp records when this content was generated, not when
+    the script last ran. Without that distinction the manifest is a
+    tracked file that churns on every invocation, so `git status`
+    is dirty after every run of check.sh and stops meaning
+    anything. The SHA256 rows are the real idempotency evidence;
+    the timestamp should not contradict them by moving on its own.
+    """
+    if not os.path.exists(path):
+        return None
+    with open(path) as fh:
+        previous = fh.read()
+    marker = "- Export generated: "
+    prior_stamp = None
+    prior_lines = []
+    for line in previous.splitlines():
+        if line.startswith(marker):
+            prior_stamp = line[len(marker):].strip()
+            continue
+        prior_lines.append(line)
+    # splitlines() on both sides, so a trailing newline on one and
+    # not the other does not read as a content change.
+    return prior_stamp if prior_lines == body_text.splitlines() else None
+
+
 def write_manifest(results, flagged_total):
-    generated = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ")
     lines = [
         "# BI export manifest",
         "",
@@ -264,7 +292,6 @@ def write_manifest(results, flagged_total):
         "to a query in this repository.",
         "",
         f"- Dataset as of: **{DATASET_AS_OF}** (frozen; queries use it as a literal)",
-        f"- Export generated: {generated}",
         f"- Extracts: {len(results)}",
         f"- Hygiene records flagged: {flagged_total}",
         "",
@@ -290,6 +317,13 @@ def write_manifest(results, flagged_total):
     lines.append("")
 
     path = os.path.join(EXPORT_DIR, "MANIFEST.md")
+    stamp = existing_timestamp(path, "\n".join(lines)) or \
+        datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ")
+
+    insert_at = next(i for i, line in enumerate(lines)
+                     if line.startswith("- Dataset as of:")) + 1
+    lines = lines[:insert_at] + [f"- Export generated: {stamp}"] + lines[insert_at:]
+
     with open(path, "w") as fh:
         fh.write("\n".join(lines))
     return path
