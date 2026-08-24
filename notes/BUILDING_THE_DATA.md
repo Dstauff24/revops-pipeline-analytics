@@ -340,3 +340,54 @@ not written a check, you have written a line that prints `[ok]`.
 Every gate in `check.sh` has now been through that, and the header
 of that file records what was broken to test each one, so the next
 person does not have to take it on faith.
+
+### The corollary: recomputing is not validating
+
+The rule above has a hole in it, and this repository fell in
+within a day of writing it down.
+
+The dollars exposed headline on dashboard 04 has an assertion
+behind it. The assertion recomputes the figure from the extract
+and compares it to the number the documents state. It passes. It
+passed the whole time the build spec next to it told you to
+compute that figure a different way, and the different way
+produces $24,412,420 against the asserted $23,050,044. The spec's
+formula summed one value per flagged record without restricting
+to opportunities, and flagged stage history rows carry their
+parent deal's amount as context, so a deal was counted again for
+every stage transition of its own that got flagged. A dashboard
+built exactly to spec would have displayed a number the assertion
+was green on.
+
+The assertion was never wrong. It was answering a question nobody
+needed answered. It verified that the database still produces
+$23,050,044 under the assertion's own rule, when what needed
+verifying was that the dashboard's rule produces $23,050,044. Two
+rules, one checked, and the one that was checked was not the one
+the artifact uses.
+
+So the corollary:
+
+> **An assertion that recomputes rather than validates can be
+> green while the artifact it exists to protect is wrong.**
+
+Recomputing guards a value. Validating guards a method. If the
+check derives the answer independently and compares answers, it
+only tells you the two derivations agree today, and if the thing
+being protected uses a third derivation, the check has no opinion
+about it at all. The failure is quiet in the specific way this
+document keeps being about: everything reports success, and the
+disagreement lives between two artifacts neither of which is
+lying.
+
+This one is harder to close than the fourth tell, because the
+artifact is a Tableau workbook and the check is Python, so there
+is no honest way to execute the dashboard's rule from the export
+script. What is available is to make the rule impossible to get
+wrong by hand: the condition now lives inside the LOD rather than
+in a filter that can be forgotten, the spec states the number the
+wrong formula produces so it identifies itself, and the exclusion
+the rule makes is written down rather than implied. That is
+mitigation, not a gate. Worth saying plainly rather than dressing
+up, because the next person to add an assertion here should know
+that passing does not mean what they will want it to mean.
