@@ -10,6 +10,33 @@
 # the whole list of what is blocking, not the first item on it.
 #
 # Exits nonzero if any gate fails.
+#
+# ----------------------------------------------------------------
+# Failure tested 2026-08-24. Every gate below was made to fail on
+# purpose, confirmed to exit 1, and reverted. A gate that has only
+# ever been watched passing is not evidence of anything: it proves
+# it does not false-positive, not that it detects. Two checks in
+# this repository had already passed for reasons unrelated to what
+# they claimed to verify, which is what prompted this pass. See
+# "The fifth tell" in notes/BUILDING_THE_DATA.md.
+#
+#   Build (setup.py)        pointed SCHEMA_PATH at a missing file
+#                           with pipeline.duckdb absent
+#   Queries (run_all.py)    renamed the activities table in the db
+#   Hygiene reconciliation  dropped 5 rows from the drill down
+#                           query so it disagreed with the summary
+#   Q3 ramp assertion       deleted the Q4 cohort's early tenure
+#                           opportunities, so Q3 was no longer the
+#                           lowest cohort in either band
+#   Em dashes (files)       wrote one into a scratch file
+#   Em dashes (commits)     made a commit carrying one, unpushed
+#   Publishing placeholders already failing, legitimately, and it
+#                           stays that way until the workbooks are
+#                           published. That is the gate working.
+#
+# The data mutations were reverted by rebuilding from setup.py and
+# confirming the export SHA256s matched the manifest byte for byte.
+# ----------------------------------------------------------------
 
 set -uo pipefail
 cd "$(dirname "$0")"
