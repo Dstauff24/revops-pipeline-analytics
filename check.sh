@@ -95,8 +95,25 @@ if "$PY" bi/export_for_bi.py > "$LOG" 2>&1; then
     pass "Q3 ramp claim still holds in the extract"
 else
     fail "export_for_bi.py failed"
-    grep -E '\[FAIL\]|months |Either the generator|until the chart' "$LOG" \
-        | head -12 | sed 's/^ */         /'
+    # Print the whole failing section rather than matching a list
+    # of known phrases. The per-check detail lines under a
+    # reconciliation failure read "check 03: summary says 30, drill
+    # down has 28" and carry no fixed keyword, so the old pattern
+    # list dropped exactly the lines naming which checks disagree:
+    # you got the headline and nothing under it. The ramp detail
+    # lines only survived because they happen to start with the
+    # band name "months", which is the pattern meant for the
+    # readings, so that one was passing by coincidence.
+    #
+    # export_for_bi.py exits as soon as a section fails, and its
+    # section headers are the only unindented lines it prints, so
+    # everything since the last unindented line is the failure and
+    # nothing else. That keeps the ramp readings, which print
+    # above the [FAIL] line, and the reconciliation detail, which
+    # prints below it, without naming either. Indentation is
+    # preserved so the detail stays nested under its headline.
+    awk '/^[^ ]/ { buf = "" } { buf = buf $0 "\n" } END { printf "%s", buf }' \
+        "$LOG" | head -18 | sed 's/^/         /'
 fi
 
 # ----------------------------------------------------------------
