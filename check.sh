@@ -28,6 +28,10 @@
 #   Q3 ramp assertion       deleted the Q4 cohort's early tenure
 #                           opportunities, so Q3 was no longer the
 #                           lowest cohort in either band
+#   Dashboard 04 dollars    scaled the amount on a flagged open
+#                           opportunity in the generator, which
+#                           moves the headline, the open figure
+#                           and the ratio together
 #   Em dashes (files)       wrote one into a scratch file
 #   Em dashes (commits)     made a commit carrying one, unpushed
 #   Publishing placeholders already failing, legitimately, and it
@@ -88,11 +92,18 @@ echo "BI extracts"
 # ----------------------------------------------------------------
 if "$PY" bi/export_for_bi.py > "$LOG" 2>&1; then
     pass "export_for_bi.py wrote all extracts"
-    # Surface the two assertions rather than burying them in a log.
+    # Surface the three assertions rather than burying them in a
+    # log. These greps match on phrasing, which is the fragility
+    # the failure branch below was rewritten to avoid, and that is
+    # acceptable here only because they are cosmetic: a miss costs
+    # a display line, not detection. Detection is the exit code.
     grep -E 'checks agree' "$LOG" | sed 's/^ *\[ok\] */         hygiene: /'
     grep -E '^    months' "$LOG" | sed 's/^ */         ramp: /'
+    grep -E '^    (deduplicated|flagged value|share of)' "$LOG" \
+        | sed 's/^ */         dollars: /'
     pass "hygiene drill down reconciles with the summary"
     pass "Q3 ramp claim still holds in the extract"
+    pass "dashboard 04 dollar figures still match the writeups"
 else
     fail "export_for_bi.py failed"
     # Print the whole failing section rather than matching a list

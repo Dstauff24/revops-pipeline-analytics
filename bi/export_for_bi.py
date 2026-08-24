@@ -8,7 +8,7 @@ one CSV per extract into bi/exports/ along with a MANIFEST.md that
 records the row count, column count, source query and SHA256 of
 every file.
 
-Three properties this script is built to hold:
+Four properties this script is built to hold:
 
   Idempotent. Running it twice produces byte identical CSVs. The
   SHA256 in the manifest is what makes that checkable rather than
@@ -28,6 +28,15 @@ Three properties this script is built to hold:
   available failure: the whole of BUILDING_THE_DATA.md is about
   catching exactly that class of error. So the claim is asserted
   here rather than eyeballed on the chart.
+
+  Guarded against stale dollar figures. bi/README.md and
+  bi/DASHBOARD_SPECS.md state the deduplicated dollars exposed
+  headline, the part of it sitting on open deals, and the ratio
+  between that part and open pipeline, as literal numbers. Three
+  hardcoded figures across two documents with nothing checking
+  them drift silently, and the drift surfaces as a document
+  contradicting a dashboard weeks later. Same class of failure as
+  the ramp claim, so the same treatment.
 
 Nothing in queries/ is read for writing or modified. Extracts that
 need a grain the analysis queries do not produce live in
@@ -125,6 +134,40 @@ SPECS = [
 RAMP_SLOW_COHORT = "Q3"
 RAMP_CLAIM_BANDS = ["months 01-03", "months 04-06"]
 RAMP_CLAIM_MEASURE = "opps_created_per_rep_month"
+
+# The three dollar figures that bi/README.md and
+# bi/DASHBOARD_SPECS.md state as literals: the deduplicated
+# headline sheet 4.1 plots, the part of it sitting on open deals,
+# and that second figure as a share of open pipeline. Asserted for
+# the same reason the ramp claim is. A document that contradicts
+# the data is the failure this repository is about, and three
+# hardcoded numbers across two documents with nothing guarding
+# them would be found six weeks later by noticing the
+# contradiction, which is the worst way to find it.
+#
+# Deduplicated because 31 opportunities fail more than one check,
+# and summing dollars_affected across the thirteen checks counts
+# those amounts once per check they fail. Distinct opportunity
+# value is what the KPI question actually asks for.
+HYGIENE_DEDUP_DOLLARS = 23_050_044
+HYGIENE_OPEN_DOLLARS = 4_666_717
+HYGIENE_OPEN_SHARE_PCT = 15.0
+
+# Tolerances, chosen rather than inherited.
+#
+# Dollars are deterministic given the seed, so the only slack the
+# comparison needs is for float summation noise across a few
+# hundred rows. A dollar is orders of magnitude more than that and
+# still tight enough that any real change in the data trips it.
+HYGIENE_DOLLAR_TOLERANCE = 1.0
+
+# The share is computed and compared as a number. Storing it as
+# the string "15.0 percent" and matching that would accept
+# anything between 14.95 and 15.05, a tolerance of plus or minus
+# 0.05 points that nobody chose and nobody could see. That band
+# happens to be the right one here, so it is written down and
+# applied deliberately instead of arriving through rounding.
+HYGIENE_OPEN_SHARE_TOLERANCE_PCT = 0.05
 
 
 def render(value):
@@ -247,6 +290,80 @@ def assert_ramp_signal(results):
             problems.append(
                 f"{band}: {RAMP_SLOW_COHORT}={slow} is not below every other "
                 f"cohort, matched or beaten by {detail}")
+
+    return problems, readings
+
+
+def _amount(value):
+    """Null amount means unknowable, which contributes nothing."""
+    return 0.0 if value is None else float(value)
+
+
+def assert_hygiene_dollars(results):
+    """
+    Assert the deduplicated dollars exposed headline, the part of
+    it on open deals, and the ratio between that part and open
+    pipeline.
+
+    Returns (problems, readings). Read off the extracts about to
+    be written rather than re-queried, so the assertion covers
+    exactly the bytes being shipped.
+
+    The deduplication is keyed on record_id within the
+    opportunity rows only. Record ids are not unique across record
+    types in this extract (three ids are both an opportunity and a
+    lead, one is both an opportunity and an account), so the type
+    filter is what makes the key safe rather than incidental.
+    """
+    flagged = next(r for r in results if r["out"] == "04_flagged_records.csv")
+    f_cols = flagged["header"]
+    i_type = f_cols.index("record_type")
+    i_id = f_cols.index("record_id")
+    i_stage = f_cols.index("stage")
+    i_amount = f_cols.index("amount")
+
+    by_opp = {}
+    for row in flagged["data"]:
+        if row[i_type] != "opportunity":
+            continue
+        by_opp[row[i_id]] = (str(row[i_stage]), _amount(row[i_amount]))
+
+    dedup = sum(amount for _, amount in by_opp.values())
+    open_flagged = sum(amount for stage, amount in by_opp.values()
+                       if not stage.startswith("Closed"))
+
+    open_deals = next(r for r in results if r["out"] == "01_open_pipeline_deals.csv")
+    o_cols = open_deals["header"]
+    open_total = sum(_amount(row[o_cols.index("amount")])
+                     for row in open_deals["data"])
+
+    share = (open_flagged / open_total * 100.0) if open_total else 0.0
+
+    readings = [
+        ("deduplicated flagged value", f"${dedup:,.2f}",
+         f"${HYGIENE_DEDUP_DOLLARS:,} +/- ${HYGIENE_DOLLAR_TOLERANCE:,.2f}"),
+        ("flagged value on open deals", f"${open_flagged:,.2f}",
+         f"${HYGIENE_OPEN_DOLLARS:,} +/- ${HYGIENE_DOLLAR_TOLERANCE:,.2f}"),
+        ("share of open pipeline", f"{share:.4f}%",
+         f"{HYGIENE_OPEN_SHARE_PCT}% +/- {HYGIENE_OPEN_SHARE_TOLERANCE_PCT}"),
+    ]
+
+    problems = []
+    if abs(dedup - HYGIENE_DEDUP_DOLLARS) > HYGIENE_DOLLAR_TOLERANCE:
+        problems.append(
+            f"deduplicated flagged value: actual ${dedup:,.2f}, "
+            f"expected ${HYGIENE_DEDUP_DOLLARS:,} "
+            f"(off by ${dedup - HYGIENE_DEDUP_DOLLARS:,.2f})")
+    if abs(open_flagged - HYGIENE_OPEN_DOLLARS) > HYGIENE_DOLLAR_TOLERANCE:
+        problems.append(
+            f"flagged value on open deals: actual ${open_flagged:,.2f}, "
+            f"expected ${HYGIENE_OPEN_DOLLARS:,} "
+            f"(off by ${open_flagged - HYGIENE_OPEN_DOLLARS:,.2f})")
+    if abs(share - HYGIENE_OPEN_SHARE_PCT) > HYGIENE_OPEN_SHARE_TOLERANCE_PCT:
+        problems.append(
+            f"share of open pipeline: actual {share:.4f}%, expected "
+            f"{HYGIENE_OPEN_SHARE_PCT}% +/- {HYGIENE_OPEN_SHARE_TOLERANCE_PCT} "
+            f"(${open_flagged:,.2f} of ${open_total:,.2f})")
 
     return problems, readings
 
@@ -379,6 +496,22 @@ def main():
         print("  until the chart and the documents agree again.")
         sys.exit(1)
     print(f"  [ok]   {RAMP_SLOW_COHORT} lowest in both bands")
+
+    print("\nAsserting the dollars exposed headline that dashboard 04 plots")
+    dollar_problems, dollar_readings = assert_hygiene_dollars(results)
+    for label, actual, expected in dollar_readings:
+        print(f"    {label:<28} {actual:>16}   expected {expected}")
+    if dollar_problems:
+        print("  [FAIL] the extracts no longer support the figures stated "
+              "in bi/README.md and bi/DASHBOARD_SPECS.md:")
+        for p in dollar_problems:
+            print(f"    {p}")
+        print("  Either the generator changed and both documents need")
+        print("  updating, or the export changed what it flags. Do not")
+        print("  publish dashboard 04 until the KPI and the documents")
+        print("  agree again.")
+        sys.exit(1)
+    print("  [ok]   headline, open share and ratio all match the writeups")
 
     manifest = write_manifest(results, flagged_total)
     total_rows = sum(r["rows"] for r in results)

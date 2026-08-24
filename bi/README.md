@@ -267,6 +267,19 @@ pipeline created per rep month, in both bands where the planted
 penalty is still live, and exits nonzero with the actual numbers
 printed if it ever stops holding.
 
+**Assert the dollar figures rather than restate them.** The
+deduplicated headline of $23,050,044, the $4,666,717 of it sitting
+on open deals, and the 15.0 percent ratio between that and open
+pipeline are stated as literals in this file and in
+`DASHBOARD_SPECS.md`. The export recomputes all three from the
+extracts it is about to write and exits nonzero with actual
+against expected if any has moved. Dollars are compared to within
+a dollar, which is float summation noise and nothing else. The
+ratio is computed and compared as a number against an explicit
+plus or minus 0.05 point band, rather than rendered to the string
+"15.0 percent" and matched, which would accept anything between
+14.95 and 15.05 as a tolerance nobody chose and nobody could see.
+
 That guard exists because of what this repository is. The failure
 it prevents is a dashboard quietly contradicting a document whose
 entire subject is catching numbers that are confidently wrong.
