@@ -175,6 +175,36 @@ Every file opens with a QUESTION, a DECISION IT INFORMS, and a
 CAVEAT block before any SQL. The caveat is not boilerplate. Each
 one names the specific thing that would make the number wrong.
 
+## Four tells that a number is wrong
+
+The generator took four rounds to get right, and every wrong build
+ran clean and returned a plausible looking table. Each round was
+caught by a different tell, written up in full in
+[`notes/BUILDING_THE_DATA.md`](notes/BUILDING_THE_DATA.md):
+
+- **Arithmetic tell.** Every input defensible, the product absurd.
+  Diagnostic: multiply your assumptions together before trusting
+  any of them individually.
+  ([Round 1](notes/BUILDING_THE_DATA.md), a 9.6 percent win rate.)
+- **Sign tell.** A planted effect that measures backwards.
+  Diagnostic: when something you know is there does not show up,
+  suspect the measurement before the mechanism, and check the
+  denominator first.
+  ([Round 2](notes/BUILDING_THE_DATA.md), the ramp penalty.)
+- **Magnitude tell.** A ratio three orders of magnitude off.
+  Diagnostic: that is never a logic error, it is two quantities on
+  different scales.
+  ([Round 3](notes/BUILDING_THE_DATA.md), referral at 2,055x.)
+- **Shape tell.** Monotonic and then a collapse in the top bucket.
+  Diagnostic: that is a denominator artifact until proven
+  otherwise, and the bucket boundaries usually say so if you print
+  them.
+  ([Round 4](notes/BUILDING_THE_DATA.md), the fake inverted-U.)
+
+There is a fifth, added later, that is different in kind: it
+detects a bad check rather than bad data. It is the closing
+section of that document.
+
 ## The export layer
 
 `python bi/export_for_bi.py` runs ten queries and writes one CSV
