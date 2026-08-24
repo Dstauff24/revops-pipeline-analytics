@@ -152,6 +152,18 @@ counts and reasoning, is in [`data/README.md`](data/README.md).
 [`queries/12_data_hygiene_audit.sql`](queries/12_data_hygiene_audit.sql)
 finds every item above and ranks it by what it breaks.
 
+That defect rate is deliberately elevated. The hygiene extract
+returns 565 record and issue pairs against 2,546 opportunities,
+which divides out to 22 percent, and that division is the first
+thing a careful reader does. It is high on purpose: a defect rate
+low enough to be realistic leaves dashboard 04 with almost nothing
+to display, and the point of that dashboard is to show the monitor
+working. The stricter number is lower, since 565 counts one row
+per record and issue across four tables and a record with two
+problems appears twice: 471 distinct opportunities carry at least
+one flag, 18.5 percent. Neither figure is a claim about what a
+real CRM export looks like.
+
 ## The analyses
 
 | # | Analysis | The question | Decision it informs |
