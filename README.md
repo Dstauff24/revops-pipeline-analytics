@@ -7,6 +7,55 @@ against a synthetic B2B sales pipeline.
 > [`data/generate.py`](data/generate.py). It represents no real
 > company, customer, or employee.**
 
+## Dashboards
+
+Four Tableau Public dashboards built on these queries, one per
+audience rather than one dashboard with everything on it.
+
+<!-- PUBLISH: replace the two placeholders below with the real
+     Tableau Public profile and workbook URLs, then delete this
+     comment. -->
+**Tableau Public profile:** `TABLEAU_PROFILE_URL_PENDING`
+
+**Workbook:** `TABLEAU_PUBLIC_URL_PENDING`
+
+<!-- PUBLISH: the four embeds below point at files that do not
+     exist yet, so they render broken on purpose until they do.
+     Capture them from the published dashboards rather than from
+     Desktop, save them under bi/screenshots/ with exactly these
+     names, then delete this comment. -->
+
+![Pipeline Health dashboard](bi/screenshots/01_pipeline_health.png)
+
+*01 Pipeline Health. For the VP of Sales: is there enough
+pipeline, and is any of it rotting?*
+
+![Rep Performance and Ramp dashboard](bi/screenshots/02_rep_performance.png)
+
+*02 Rep Performance and Ramp. For the sales manager: who needs
+help, and are new hires ramping on schedule?*
+
+![Channel Efficiency dashboard](bi/screenshots/03_channel_efficiency.png)
+
+*03 Channel Efficiency. For the CMO or growth lead: where should
+next quarter's budget go?*
+
+![Data Quality Monitor dashboard](bi/screenshots/04_data_quality.png)
+
+*04 Data Quality Monitor. For RevOps: what is broken in the CRM,
+and what does it cost?*
+
+Dashboard 04 is the one worth looking at first. Most BI portfolios
+show revenue charts. This one quantifies what the dirty records in
+a CRM cost and hands somebody the list to go fix, and clicking an
+issue filters the work list to those records.
+
+[`bi/README.md`](bi/README.md) has the reasoning: why Tableau
+Public rather than Power BI, why four dashboards instead of one,
+and eight charts that were considered and deliberately left off.
+[`bi/DASHBOARD_SPECS.md`](bi/DASHBOARD_SPECS.md) is the sheet by
+sheet build spec.
+
 ## Why this exists
 
 I spent a few years running eight markets, and most of the
@@ -126,44 +175,7 @@ Every file opens with a QUESTION, a DECISION IT INFORMS, and a
 CAVEAT block before any SQL. The caveat is not boilerplate. Each
 one names the specific thing that would make the number wrong.
 
-## Dashboards
-
-Four Tableau Public dashboards built on these queries, one per
-audience rather than one dashboard with everything on it.
-
-<!-- PUBLISH: replace this line with the Tableau Public workbook
-     URL, then delete the comment. -->
-**Workbook:** `TABLEAU_PUBLIC_URL_PENDING`
-
-| # | Dashboard | Audience | Question it answers |
-|---|---|---|---|
-| 01 | Pipeline Health | VP of Sales | Is there enough pipeline, and is any of it rotting? |
-| 02 | Rep Performance and Ramp | Sales manager | Who needs help, and are new hires ramping on schedule? |
-| 03 | Channel Efficiency | CMO or growth lead | Where should next quarter's budget go? |
-| 04 | Data Quality Monitor | RevOps | What is broken in the CRM, and what does it cost? |
-
-<!-- PUBLISH: replace each placeholder below with the exported PNG
-     once the workbooks are live:
-     ![Pipeline Health](bi/screenshots/01_pipeline_health.png)
-     ![Rep Performance](bi/screenshots/02_rep_performance.png)
-     ![Channel Efficiency](bi/screenshots/03_channel_efficiency.png)
-     ![Data Quality](bi/screenshots/04_data_quality.png)
--->
-Screenshots land in [`bi/screenshots/`](bi/screenshots/) and are
-embedded here, so the work is visible without leaving GitHub.
-
-Dashboard 04 is the one worth looking at first. Most BI portfolios
-show revenue charts. This one quantifies what the dirty records in
-a CRM cost and hands somebody the list to go fix, and clicking an
-issue filters the work list to those records.
-
-[`bi/README.md`](bi/README.md) has the reasoning: why Tableau
-Public rather than Power BI, why four dashboards instead of one,
-and eight charts that were considered and deliberately left off.
-[`bi/DASHBOARD_SPECS.md`](bi/DASHBOARD_SPECS.md) is the sheet by
-sheet build spec.
-
-### The export layer
+## The export layer
 
 `python bi/export_for_bi.py` runs ten queries and writes one CSV
 per extract into `bi/exports/`, with a
