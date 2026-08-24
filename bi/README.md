@@ -140,9 +140,28 @@ attached. Built on
 
 ### 04 Data Quality Monitor
 All thirteen integrity checks ranked by severity then dollars
-exposed, total dollars affected as the headline, breakdown by
-issue type, and a drill down work list at record grain. Built on
-[`queries/12`](../queries/12_data_hygiene_audit.sql).
+exposed, deduplicated dollars affected as the headline, breakdown
+by issue type, and a drill down work list at record grain. Built
+on [`queries/12`](../queries/12_data_hygiene_audit.sql).
+
+The headline is deduplicated because the obvious version of it is
+wrong. Summing `dollars_affected` across the thirteen checks gives
+$24,552,699, but 31 opportunities fail more than one check and
+their amounts are counted once per check they fail. Distinct
+opportunity value behind a flag is $23,050,044. The per-check bars
+keep the undeduplicated figures, because the question a single bar
+answers is what fixing that check recovers, which is the deal's
+whole value regardless of what else is wrong with it. The bars
+overlap and the caption says so. What is not defensible is adding
+them up and calling the total a headline.
+
+The related trap is the denominator. Open pipeline is $31.1M on
+dashboard 01, and $24.5M against $31.1M divides out to 79 percent
+of pipeline broken, which is both alarming and meaningless: most
+flagged dollars sit on closed deals. Open deals carrying a flag
+are $4,666,717 of that $31.1M, or 15.0 percent. `DASHBOARD_SPECS`
+sheet 4.1 carries the arithmetic and the instruction not to place
+the two numbers side by side.
 
 This is the one that is different from other portfolios. Most BI
 work shows revenue charts. Almost none shows that the candidate

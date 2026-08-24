@@ -190,13 +190,45 @@ Build this one first and give it the most polish. It is the
 dashboard other portfolios do not have.
 
 ### Sheet 4.1 Dollars exposed KPI
-- Extract: `04_data_quality_checks`
-- Text mark: `SUM([dollars_affected])`, currency, no decimals
+- Extract: `04_flagged_records`, **not** `04_data_quality_checks`
+- Text mark:
+  `SUM({FIXED [record_type], [record_id] : MAX([amount])})`,
+  currency, no decimals. This reads **$23,050,044**.
 - Second smaller line: `SUM([records])` flagged records, and the
   count of checks failing
 - Do not color this one red by default. It is a standing
   operational number, not an alarm, and a permanently red KPI
   stops being read within a week.
+
+**Why the LOD and not `SUM([dollars_affected])` off the summary
+extract.** That was the original spec and it double counts. The
+per-check dollars are correct per check, but 31 opportunities fail
+more than one check (30 fail two, one fails three) and their
+amounts are counted once per check they fail. Summing the thirteen
+rows gives $24,552,699 for what is really $23,050,044 of distinct
+opportunity value, a 6.5 percent overstatement. The KPI answers
+"how much value sits behind broken records", and that question has
+to deduplicate.
+
+The `FIXED` key is `[record_type], [record_id]` rather than
+`[record_id]` alone. Four ids collide across types in the current
+extract (509, 1643 and 2539 are both an opportunity and a lead,
+305 is both an opportunity and an account), and keying on
+`record_id` alone silently drops one side of each collision.
+Records that are not opportunities carry no amount, so they
+contribute null and fall out of the sum, which is correct: the
+dollars behind a duplicate account are unknowable, not zero.
+
+**Do not put this number next to open pipeline.** $31.1M of open
+pipeline is on dashboard 01, and the division is the first thing a
+viewer does: $23.0M against $31.1M reads as 74 percent of pipeline
+being broken, and the original $24.5M reads as 79 percent. Both
+are meaningless, because they divide two different populations.
+The flagged dollars are mostly on closed deals: $18,383,328 across
+404 closed records against $4,666,717 across 67 open ones. The
+honest comparison is that second figure, **15.0 percent of open
+pipeline carries at least one flag**, and if a share of pipeline
+is wanted anywhere on this dashboard, that is the one to show.
 
 ### Sheet 4.2 Ranked issue list
 - Extract: `04_data_quality_checks`
@@ -213,6 +245,13 @@ dashboard other portfolios do not have.
   (missing amount, duplicate accounts, unlinked leads) because the
   dollars are unknowable, not zero. A bar of length zero next to a
   bar of length 2.1 million reads as harmless otherwise.
+- Also note in the caption that **these bars overlap and do not
+  sum to the KPI in 4.1.** An opportunity failing three checks
+  appears in three bars at its full amount. Per check is the right
+  grain here, because the question each bar answers is "what does
+  fixing this check recover", and that is the deal's whole value
+  regardless of what else is wrong with it. Adding them up is what
+  is wrong, which is why 4.1 deduplicates instead.
 
 ### Sheet 4.3 Breakdown by severity
 - Extract: `04_data_quality_checks`
