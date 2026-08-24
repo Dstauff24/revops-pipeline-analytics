@@ -272,3 +272,71 @@ plausible looking table. They were caught by knowing roughly what
 the number should have been before running the query, which is
 the only reliable defense against output that is confidently
 wrong.
+
+---
+
+## The fifth tell: a check that is green for the wrong reason
+
+The four above all detect bad data. This one detects a bad check:
+a gate that returns green for a reason unrelated to what it claims
+to verify. It is worse than the other four, because the other four
+leave you suspicious of a number and this one leaves you confident
+in nothing.
+
+It has shown up twice in this repository.
+
+**The manifest timestamp.** `bi/exports/MANIFEST.md` is tracked
+and carried a wall clock timestamp, so every run of the export
+left the tree dirty. The fix was to reuse the previous stamp when
+the manifest body had not changed, which meant comparing the
+rendered body against the file on disk. The first version of that
+comparison put one side through `splitlines()` and not the other.
+`splitlines()` drops the final empty element that a trailing
+newline produces, so the two sides never matched, the branch that
+reuses the stamp never fired, and the manifest re-stamped on every
+single run exactly as before.
+
+What hid it was the test. I ran the export three times and
+compared timestamps, they were identical, and I recorded the fix
+as working. All three runs had landed inside the same second. The
+stamp was being regenerated every time and regenerating to the
+same string. I had watched the check pass and concluded it worked,
+when what I had actually watched was a one second window make a
+broken comparison indistinguishable from a working one.
+
+**The em dash gate.** Same shape, earlier. The gate was written as
+`grep -rn $'\u2014' .` which reads as an escape for the character.
+This bash does not expand `\u` in `$'...'`, so it left the literal
+text `\u2014`, and the gate spent its life searching every file for
+the string `u2014` and finding none. It reported no em dashes on
+every run, including runs where the repository contained em
+dashes. The gate that was supposed to catch them was structurally
+incapable of catching anything, and it was green the whole time.
+It is now built from an explicit byte sequence, `$'\xe2\x80\x94'`,
+and there is a comment in `check.sh` saying why, because the
+broken version is the one that looks correct.
+
+**What generalizes.** Both of these passed. Both were useless.
+Neither failure was visible from the passing output, because a
+check that cannot detect anything and a check that has nothing to
+detect print exactly the same thing.
+
+So the rule:
+
+> **A check is unverified until you have watched it fail.**
+
+Testing the happy path confirms one property only: that the check
+does not false-positive on good input. It says nothing at all
+about whether the check detects bad input, which is the entire
+reason the check exists. Those are two different properties and
+only one of them is what you wanted. The failure path is the one
+that carries the information.
+
+In practice that means: after writing a gate, break the thing it
+guards on purpose, watch it go red, read the message it prints,
+and only then put it back. If you cannot make it fail, you have
+not written a check, you have written a line that prints `[ok]`.
+
+Every gate in `check.sh` has now been through that, and the header
+of that file records what was broken to test each one, so the next
+person does not have to take it on faith.
