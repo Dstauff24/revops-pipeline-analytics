@@ -191,9 +191,15 @@ dashboard other portfolios do not have.
 
 ### Sheet 4.1 Dollars exposed KPI
 - Extract: `04_flagged_records`, **not** `04_data_quality_checks`
-- Text mark:
-  `SUM({FIXED [record_type], [record_id] : MAX([amount])})`,
-  currency, no decimals. This reads **$23,050,044**.
+- Text mark, with the opportunity condition inside the LOD:
+  ```
+  SUM({FIXED [record_type], [record_id] :
+       MAX(IF [record_type] = "opportunity" THEN [amount] END)})
+  ```
+  currency, no decimals. This reads **$23,050,044**. Built without
+  that condition it reads **$24,412,420**, so if you get the
+  second number the condition is missing or is being applied in
+  the wrong place.
 - Second smaller line: `SUM([records])` flagged records, and the
   count of checks failing
 - Do not color this one red by default. It is a standing
@@ -215,9 +221,41 @@ The `FIXED` key is `[record_type], [record_id]` rather than
 extract (509, 1643 and 2539 are both an opportunity and a lead,
 305 is both an opportunity and an account), and keying on
 `record_id` alone silently drops one side of each collision.
-Records that are not opportunities carry no amount, so they
-contribute null and fall out of the sum, which is correct: the
-dollars behind a duplicate account are unknowable, not zero.
+
+**The opportunity condition is load bearing and is the easiest
+part of this to leave out.** Accounts and leads carry no amount,
+so they fall out of the sum by themselves. Stage history rows do
+not. Check 11 selects `c.amount` from the parent opportunity
+through `opp_context`, keyed on `sh.id`, so each flagged stage
+history row carries its parent deal's full amount as context for
+the work list. To the LOD those look like 25 more entities worth
+$1,362,376, and 24 of them have an amount. Leave the condition out
+and the KPI reads $24,412,420: the deduplication reintroduces, in
+a different shape, exactly the double counting it exists to
+remove.
+
+**Do not implement this as a sheet filter on `record_type`.**
+`FIXED` expressions are computed before dimension filters, so a
+sheet filter leaves the stage history partitions in the sum and
+the number does not move. It would work as a context filter, but
+then the correctness of the KPI depends on someone remembering
+which filters are in context, which is not a property you can see
+by looking at the sheet. Putting the condition inside the LOD
+makes it structural.
+
+**What this deliberately excludes, and it is a real exclusion.**
+22 opportunities worth $1,266,628 are flagged only by check 11,
+and the condition drops them from the headline. That follows query
+12, which assigns no `dollars_affected` to check 11 because its
+grain is a history row rather than a deal, and the analysis query
+is the source of truth for what a check costs. The consequence is
+that the headline is the value behind records flagged by a check
+that attributes dollars, not the value behind every flagged
+record. Those 22 deals are still in the 4.4 work list, which is
+where somebody would act on them. If that call is ever revisited,
+the inclusive figure is $24,316,672 and the open share becomes
+15.1 percent, and both documents plus the three constants in
+`export_for_bi.py` move together.
 
 **Do not put this number next to open pipeline.** $31.1M of open
 pipeline is on dashboard 01, and the division is the first thing a
@@ -241,10 +279,11 @@ is wanted anywhere on this dashboard, that is the one to show.
 - Columns `dollars_affected`, Color `severity`
 - Severity colors: Blocks red, Distorts amber, Cleanup grey
 - Tooltip: `what_it_breaks`, `pct_of_table`, `table_affected`
-- Note in the caption that three checks have no dollar figure
-  (missing amount, duplicate accounts, unlinked leads) because the
-  dollars are unknowable, not zero. A bar of length zero next to a
-  bar of length 2.1 million reads as harmless otherwise.
+- Note in the caption that four checks have no dollar figure
+  (missing amount, duplicate accounts, unlinked leads, skipped
+  stage) because the dollars are either unknowable or not
+  attributable to that grain. A bar of length zero next to a bar
+  of length 2.1 million reads as harmless otherwise.
 - Also note in the caption that **these bars overlap and do not
   sum to the KPI in 4.1.** An opportunity failing three checks
   appears in three bars at its full amount. Per check is the right

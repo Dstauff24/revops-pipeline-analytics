@@ -148,7 +148,11 @@ The headline is deduplicated because the obvious version of it is
 wrong. Summing `dollars_affected` across the thirteen checks gives
 $24,552,699, but 31 opportunities fail more than one check and
 their amounts are counted once per check they fail. Distinct
-opportunity value behind a flag is $23,050,044. The per-check bars
+opportunity value behind a flag is $23,050,044, counting only
+records whose check attributes dollars: the 22 deals flagged
+solely by the skipped stage check are excluded, because query 12
+assigns that check no dollar figure, its grain being a history row
+rather than a deal. The per-check bars
 keep the undeduplicated figures, because the question a single bar
 answers is what fixing that check recovers, which is the deal's
 whole value regardless of what else is wrong with it. The bars

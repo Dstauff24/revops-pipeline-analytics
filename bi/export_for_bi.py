@@ -310,10 +310,16 @@ def assert_hygiene_dollars(results):
     exactly the bytes being shipped.
 
     The deduplication is keyed on record_id within the
-    opportunity rows only. Record ids are not unique across record
-    types in this extract (three ids are both an opportunity and a
-    lead, one is both an opportunity and an account), so the type
-    filter is what makes the key safe rather than incidental.
+    opportunity rows only, and the type filter is doing two jobs.
+    Record ids are not unique across record types in this extract
+    (three ids are both an opportunity and a lead, one is both an
+    opportunity and an account), so the filter is what makes the
+    key safe. It also drops the stage history rows, which carry
+    their parent opportunity's amount as context for the work list
+    rather than any additional exposure: counting them adds
+    $1,362,376 of the same double counting this figure exists to
+    remove. DASHBOARD_SPECS sheet 4.1 has the full reasoning and
+    what the filter deliberately excludes.
     """
     flagged = next(r for r in results if r["out"] == "04_flagged_records.csv")
     f_cols = flagged["header"]
