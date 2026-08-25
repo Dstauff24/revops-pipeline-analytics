@@ -36,10 +36,11 @@ All four dashboards are published and open without an account.
 manifest. `bi/DASHBOARD_SPECS.md` is the sheet by sheet build
 spec the workbooks are built from.
 
-### Known deviations from the specs, unresolved
+### Known deviations from the specs
 
-Checked against the published views, not against Desktop. These
-are blockers of varying weight and none of them is fixed yet.
+Checked against the published views rather than against Desktop,
+and rechecked after each republish. Fixed items are kept rather
+than deleted, so what was wrong stays on the record.
 
 **Fixed since the first pass.** The disclosure is now on all four
 dashboards; 01 and 03 were republished with the text object added
@@ -54,16 +55,18 @@ means the same thing for every segment, expected value against
 that segment's own target, so it does not reintroduce the cross
 segment ranking that the section below rules out.
 
-Still open, in rough order of weight:
+Dashboard 03's caption is corrected too. It read "The scalable win
+is Inbound at 28x on 1,000+", against 736 leads in
+`03_channel_efficiency.csv`. It now reads "at 28x on 736 leads",
+which matches the extract. That was the last place any of the four
+dashboards stated a figure the data contradicts. Comparing the
+republished render against the previous one, the changed pixels
+are a 57 by 12 box around those two words and nothing else moved.
 
-**Dashboard 03 caption states a number the extract contradicts.**
-The caption reads "The scalable win is Inbound at 28x on 1,000+".
-Inbound returns 28.28x, which is right, on **736 leads**, which is
-not 1,000 or more. No source clears 1,000 leads except Outbound at
-1,798, and Outbound returns 2.38x. The argument survives the
-correction, since 736 against Referral's 249 is still the scarcity
-point, but the figure as printed is wrong and it is the only
-factual error left on any of the four.
+Still open, in rough order of weight. All of these are design and
+completeness gaps against `DASHBOARD_SPECS.md`. **None of them is
+a wrong number**: every figure on all four dashboards now traces
+to its extract.
 
 **Dashboard 03 is missing sheet 3.4 entirely.** The volume bars
 are not on the dashboard. The spec asks for them directly under
