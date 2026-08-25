@@ -19,11 +19,11 @@ audience rather than one dashboard with everything on it.
 
 **Workbook:** `TABLEAU_PUBLIC_URL_PENDING`
 
-<!-- PUBLISH: the four embeds below point at files that do not
-     exist yet, so they render broken on purpose until they do.
-     Capture them from the published dashboards rather than from
-     Desktop, save them under bi/screenshots/ with exactly these
-     names, then delete this comment. -->
+<!-- PUBLISH: 04 is captured and live. The other three point at
+     files that do not exist yet and render broken on purpose
+     until they do. Capture them from the published dashboards
+     rather than from Desktop, save them under bi/screenshots/
+     with exactly these names, then delete this comment. -->
 
 ![Pipeline Health dashboard](bi/screenshots/01_pipeline_health.png)
 
