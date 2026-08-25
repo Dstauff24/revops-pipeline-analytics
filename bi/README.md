@@ -13,14 +13,25 @@ export script that feeds them.
 
 ## Publishing status
 
-<!-- PUBLISH: replace the three placeholders below once the
-     workbooks are live, then delete this comment. -->
+All four dashboards are published and open without an account.
 
-- Tableau Public profile: `PROFILE_URL_PENDING`
-- Workbook: `WORKBOOK_URL_PENDING`
-- Screenshots: `SCREENSHOTS_PENDING`, land in `bi/screenshots/`
+- Tableau Public profile:
+  [public.tableau.com/app/profile/darren.stauffer](https://public.tableau.com/app/profile/darren.stauffer)
+- Workbooks, one per dashboard rather than one holding all four:
+  - [01 Pipeline Health](https://public.tableau.com/app/profile/darren.stauffer/viz/PipelineHealth_17876735969980/PipelineHealth),
+    for a VP of Sales: is there enough pipeline, and is any of it
+    rotting?
+  - [02 Rep Performance and Ramp](https://public.tableau.com/app/profile/darren.stauffer/viz/RepPerformanceandRamp/RepPerformanceandRamp),
+    for a sales manager: who needs help, and are new hires ramping
+    on schedule?
+  - [03 Channel Efficiency](https://public.tableau.com/app/profile/darren.stauffer/viz/ChannelEfficiency/ChannelEfficiency),
+    for a CMO or growth lead: where should next quarter's budget
+    go?
+  - [04 Data Quality Monitor](https://public.tableau.com/app/profile/darren.stauffer/viz/DataQualityMonitor/DataQualityMonitor),
+    for RevOps: what is broken in the CRM, and what does it cost?
+- Screenshots: captured signed out from the published views and
+  embedded in the root README, in `bi/screenshots/`
 
-Everything else in this directory is done and runs:
 `python bi/export_for_bi.py` produces the ten extracts and the
 manifest. `bi/DASHBOARD_SPECS.md` is the sheet by sheet build
 spec the workbooks are built from.
@@ -138,34 +149,40 @@ puts Q3 below all three other cohorts through months 01-03 and
 and every scatter point on dashboard 03 matches
 `03_channel_efficiency.csv` exactly.
 
-### Release sequence
+### Release sequence, completed
 
-The placeholders above are a dependency loop if you take them out
-of order: the README needs URLs that do not exist until the
-workbooks are published, and the screenshots have to come from the
-published versions rather than from Desktop, because Desktop
-renders fonts and sizing differently and the mismatch is visible.
+The placeholders were a dependency loop if taken out of order: the
+README needed URLs that did not exist until the workbooks were
+published, and the screenshots had to come from the published
+versions rather than from Desktop, because Desktop renders fonts
+and sizing differently and the mismatch is visible. So, in order,
+and all four steps are now done:
 
-So, in order:
+1. **Published the workbooks to Tableau Public**, one per
+   dashboard, which is what produced the real URLs.
+2. **Captured screenshots from the published views**, signed out,
+   through the public render endpoint rather than a browser
+   session, so no account state appears in the images.
+3. **Filled in the placeholders** across this file and the root
+   README, and removed the three instruction comments.
+4. **Renamed the repository.**
 
-1. **Publish the workbooks to Tableau Public.** This is what
-   produces the real URLs.
-2. **Fill in the placeholders.** Four values and three comment
-   blocks across `bi/README.md` and the root README. `./check.sh`
-   lists every one of them by file and line.
-3. **Capture screenshots from the published dashboards**, not from
-   Desktop. Save them into `bi/screenshots/` with the filenames the
-   root README already expects.
-4. **Rename the repository and pin it, last.** Renaming last means
-   the Tableau links and the GitHub description go live at the same
-   time, so there is never a window where a reviewer lands on a
-   repo whose description promises dashboards it cannot reach.
+`./check.sh` gates on all fourteen queries, the hygiene
+reconciliation, the Q3 ramp assertion, the dashboard 04 dollar
+figures, em dashes, and the publishing placeholders. It exits zero
+as of this commit.
 
-**Nothing gets renamed or pinned until `./check.sh` exits zero.**
-It gates on all fourteen queries, the hygiene reconciliation, the
-Q3 ramp assertion, em dashes, and the publishing placeholders.
-Today it fails on exactly one gate, the placeholders, which is the
-gate doing its job.
+**What exiting zero does and does not mean.** It means nothing is
+unresolved that the gate knows how to look at. It does not mean
+the dashboards match their specs. The deviations listed above are
+real and still open, and two of them are worth naming here because
+the gate cannot see either: dashboards 01 and 03 are missing the
+synthetic data disclosure that `DASHBOARD_SPECS.md` calls not
+optional, and dashboard 01's coverage sheet compares weighted
+coverage against a raw coverage threshold and contradicts its own
+color coding. A green gate next to a known defect list is exactly
+the shape `notes/BUILDING_THE_DATA.md` warns about, so the list
+stays at the top of this file rather than in a scratch note.
 
 ---
 

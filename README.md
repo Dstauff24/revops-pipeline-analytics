@@ -12,21 +12,18 @@ against a synthetic B2B sales pipeline.
 Four Tableau Public dashboards built on these queries, one per
 audience rather than one dashboard with everything on it.
 
-<!-- PUBLISH: replace the two placeholders below with the real
-     Tableau Public profile and workbook URLs, then delete this
-     comment. -->
-**Tableau Public profile:** `TABLEAU_PROFILE_URL_PENDING`
+**Tableau Public profile:**
+[public.tableau.com/app/profile/darren.stauffer](https://public.tableau.com/app/profile/darren.stauffer)
 
-**Workbook:** `TABLEAU_PUBLIC_URL_PENDING`
+Each dashboard is its own workbook, so there are four links rather
+than one. Every one opens without an account:
 
-<!-- PUBLISH: all four are captured from the published views and
-     all four embeds resolve. Two of these images are known stale
-     in advance: 01 and 03 are missing the synthetic data
-     disclosure, and once that text object is added to those
-     workbooks both must be recaptured, or the README will keep
-     showing a version without it. bi/README.md carries the full
-     deviations list. Delete this comment once the URLs above are
-     filled in and the recaptures are done. -->
+| # | Dashboard | Audience and the question it answers |
+|---|---|---|
+| 01 | [Pipeline Health](https://public.tableau.com/app/profile/darren.stauffer/viz/PipelineHealth_17876735969980/PipelineHealth) | VP of Sales: is there enough pipeline, and is any of it rotting? |
+| 02 | [Rep Performance and Ramp](https://public.tableau.com/app/profile/darren.stauffer/viz/RepPerformanceandRamp/RepPerformanceandRamp) | Sales manager: who needs help, and are new hires ramping on schedule? |
+| 03 | [Channel Efficiency](https://public.tableau.com/app/profile/darren.stauffer/viz/ChannelEfficiency/ChannelEfficiency) | CMO or growth lead: where should next quarter's budget go? |
+| 04 | [Data Quality Monitor](https://public.tableau.com/app/profile/darren.stauffer/viz/DataQualityMonitor/DataQualityMonitor) | RevOps: what is broken in the CRM, and what does it cost? |
 
 ![Pipeline Health dashboard](bi/screenshots/01_pipeline_health.png)
 
