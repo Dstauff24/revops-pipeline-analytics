@@ -19,11 +19,14 @@ audience rather than one dashboard with everything on it.
 
 **Workbook:** `TABLEAU_PUBLIC_URL_PENDING`
 
-<!-- PUBLISH: 02, 03 and 04 are captured and live. 01 points at a
-     file that does not exist yet and renders broken on purpose
-     until it does. Capture it from the published dashboard rather
-     than from Desktop, save it under bi/screenshots/ with exactly
-     that name, then delete this comment. -->
+<!-- PUBLISH: all four are captured from the published views and
+     all four embeds resolve. Two of these images are known stale
+     in advance: 01 and 03 are missing the synthetic data
+     disclosure, and once that text object is added to those
+     workbooks both must be recaptured, or the README will keep
+     showing a version without it. bi/README.md carries the full
+     deviations list. Delete this comment once the URLs above are
+     filled in and the recaptures are done. -->
 
 ![Pipeline Health dashboard](bi/screenshots/01_pipeline_health.png)
 
